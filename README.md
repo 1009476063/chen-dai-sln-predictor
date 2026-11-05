@@ -318,6 +318,18 @@ hash, runtime details and the prediction output for that case.
 7. Switch to another modality to draw 2-D labels where the protocol requires
    them.
 
+Keyboard shortcuts in the viewer:
+
+| Key | Action |
+|---|---|
+| `B` | Brush |
+| `E` | Eraser |
+| `F` | Region grow |
+| `1` / `2` / `3` | Select the `GTV`, `GTVnd` or `GTVnd1` label |
+| `[` / `]` | Decrease or increase the brush width |
+| `Ctrl+Z` / `Ctrl+Y` | Undo or redo |
+| `Ctrl+S` | Save the current labels |
+
 ---
 
 ## 9. Settings Reference
