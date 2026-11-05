@@ -15,7 +15,7 @@ mammography and ultrasound) with 35 clinical and 20 pathological features.
 
 | Item | Description |
 |---|---|
-| `Chen-Dai-Distance-SLN-Predictor-V1.0.zip` | Portable Windows x64 application, 495 MiB |
+| `Chen-Dai-Distance-SLN-Predictor-V1.0-Windows-x64.zip` | Portable Windows x64 application, 495 MiB |
 | `README.md` | This guide |
 
 The archive is self-contained. Python, PyTorch and the model weights do not need
@@ -25,7 +25,7 @@ to be installed separately.
 
 | Property | Value |
 |---|---|
-| File name | `基于陈-戴距离的乳腺癌前哨淋巴结状态智能预测系统 V1.0.zip` |
+| File name | `Chen-Dai-Distance-SLN-Predictor-V1.0-Windows-x64.zip` |
 | Size | 519,069,395 bytes (495 MiB) |
 | SHA-256 | `e5a321cc5f1e9e6e0910fbccaca035a4838079c32d7ccf72686906b0221cd447` |
 
@@ -51,11 +51,11 @@ authors on request.
 ## 2. Download and Verify
 
 1. Open the **Releases** page of this repository.
-2. Download `基于陈-戴距离的乳腺癌前哨淋巴结状态智能预测系统 V1.0.zip`.
+2. Download `Chen-Dai-Distance-SLN-Predictor-V1.0-Windows-x64.zip`.
 3. Optionally verify the download before running it, in PowerShell:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 ".\基于陈-戴距离的乳腺癌前哨淋巴结状态智能预测系统 V1.0.zip"
+Get-FileHash -Algorithm SHA256 ".\Chen-Dai-Distance-SLN-Predictor-V1.0-Windows-x64.zip"
 ```
 
 The hash must match `e5a321cc5f1e9e6e0910fbccaca035a4838079c32d7ccf72686906b0221cd447`.
