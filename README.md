@@ -1,9 +1,5 @@
 # Chen-Dai Distance-Based Intelligent Prediction System for Breast Cancer Sentinel Lymph Node Status V1.0
 
-Reviewer distribution package for the manuscript. This repository contains the
-compiled desktop application and this user guide only. No source code is
-published here.
-
 The application estimates the probability that a newly diagnosed breast cancer
 patient has sentinel lymph node (SLN) metastasis. It wraps the MAT (Multimodal
 Attention Transformer) model, which fuses three imaging modalities (DCE-MRI,
