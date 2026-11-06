@@ -12,6 +12,7 @@ mammography and ultrasound) with 35 clinical and 20 pathological features.
 | Item | Description |
 |---|---|
 | `Chen-Dai-Distance-SLN-Predictor-V1.0-Windows-x64.zip` | Portable Windows x64 application, 495 MiB |
+| `sample-data/Case1`, `sample-data/Case2` | Two de-identified example studies with clinical workbooks |
 | `README.md` | This guide |
 
 The archive is self-contained. Python, PyTorch and the model weights do not need
@@ -160,17 +161,15 @@ the clinical and pathological fields.
 
 ```
 PatientID/
-├── DCE/
-│   ├── {ID}_DCE.nii[.gz]
-│   ├── {ID}_DCE_GTV.nii[.gz]
-│   ├── {ID}_DCE_GTVnd.nii[.gz]     # optional, used by the distance workflow
-│   └── {ID}_DCE_GTVnd1.nii[.gz]
+├── {ID}_DCE.nii[.gz]
+├── {ID}_DCE_GTV.nii[.gz]
+├── {ID}_DCE_GTVnd1.nii[.gz]
+├── {ID}_DCE_Center.nii[.gz]
 ├── MG/
 │   ├── *CC*.nii[.gz]
 │   ├── *CC*_GTV.nii[.gz]
 │   ├── *MLO*.nii[.gz]
 │   ├── *MLO*_GTV.nii[.gz]
-│   ├── *MLO*_GTVnd.nii[.gz]        # optional
 │   └── *MLO*_GTVnd1.nii[.gz]
 └── US/
     ├── {ID}_H.nii[.gz]
@@ -178,6 +177,19 @@ PatientID/
     ├── {ID}_V.nii[.gz]
     └── {ID}_V_GTV.nii[.gz]
 ```
+
+Notes on this layout:
+
+- The DCE images and masks sit at the study root, not in a `DCE/` subfolder.
+  Studies that keep DCE under `DCE/` are also accepted.
+- `{ID}_DCE_GTVnd.nii[.gz]` may be added when the nodal-region contour is
+  available. It is optional for prediction.
+- `{ID}_DCE_Center.nii[.gz]` is required only to reproduce the MAT
+  `location=0` branch, which runs `GTV → DCE_Center → GTVnd1`. The
+  `location=1` branch needs only `GTV` and `GTVnd1`.
+- `{ID}_DCE_N4.nii[.gz]` may be supplied as a precomputed bias-field-corrected
+  volume. When present, the application loads it directly and skips N4
+  correction, which makes the first run much faster.
 
 ### 6.2 Clinical workbook
 
@@ -194,6 +206,36 @@ blank rather than inferred.
 **The clinical workbook does not need to contain the Chen-Dai distance or the
 MAT location branch.** The application derives both from the DCE masks; see
 Section 7.3.
+
+### 6.3 Bundled sample studies
+
+Two de-identified example studies are included in `sample-data/` so the software
+can be exercised without collecting new cases.
+
+| Study | Laterality | cT | Lesion site | DCE volume | Mask geometry |
+|---|---|---|---|---|---|
+| `sample-data/Case1` | Left | T1 | UOQ | 320 x 320 x 160 | matches source |
+| `sample-data/Case2` | Right | T3 | UOQ | 448 x 448 x 112 | matches source |
+
+Each study already contains all five image views, the `GTV`, `GTVnd1` and
+`DCE_Center` masks, a precomputed `_DCE_N4` volume, and its own clinical
+workbook. The workbooks carry the full clinical and pathological panel but omit
+the Chen-Dai distance and the MAT location, which is the normal situation for a
+clinical workbook. This means the distance has to be calculated in the
+application, exactly as described in Section 7.3.
+
+Both studies were validated with the application's own loader:
+
+| Study | Modalities detected | Chen-Dai candidates |
+|---|---|---|
+| `Case1` | DCE, MG-CC, MG-MLO, US-H, US-V | `location=1` 88.884 mm, `location=0` 211.226 mm |
+| `Case2` | DCE, MG-CC, MG-MLO, US-H, US-V | `location=1` 63.209 mm, `location=0` 171.094 mm |
+
+Because each study has a `DCE_Center` mask, both MAT branches are mathematically
+valid. The application therefore asks the operator to confirm which branch
+matches the annotation definition used for that patient; it never picks one
+silently. To predict without that prompt, add the original `location` value or a
+distance to the workbook, as described in Section 7.3.
 
 ---
 
@@ -295,6 +337,54 @@ hash, runtime details and the prediction output for that case.
 6. Select **View Selected Images** to inspect a row, or **Export CSV** to keep
    the quality annotations alongside the probabilities.
 
+### 7.7 Walkthrough with the bundled sample data
+
+The steps below produce a full prediction for `sample-data/Case1`. `Case2`
+works identically.
+
+1. Copy `sample-data/Case1` to a local folder, for example `D:\SLN-Data\Case1`.
+   Running from a local disk avoids file-locking problems on network shares.
+2. Launch the application and sign in.
+3. Open **Import**, keep **NIfTI** selected, and stay on the
+   **Single-Patient Import** tab.
+4. Select **Browse…** and choose the `Case1` folder.
+5. Confirm that the `DCE`, `MG` and `US` badges are all marked as available.
+6. Select **View Images** and check that all five views render. The DCE panel
+   should show the study without waiting for N4 correction, because
+   `Case1_DCE_N4.nii.gz` is already present in the study.
+7. Return to **Import**. Import the workbook that ships with the study,
+   `Clinicopathological.xlsx`, and confirm the proposed field mapping. The
+   matched workbook has a high completeness score and fills age, laterality,
+   multifocality, lesion site, cT, axillary ultrasound, calcification, breast
+   density, ultrasound and mammography and MRI sizes, histological type and
+   grade, ER, PR, HER2, Ki67 and LVI.
+8. Select **Calculate Chen-Dai Distance**. Because the workbook carries neither
+   a distance nor a location, and the study has a `DCE_Center` mask, a
+   confirmation table appears with two MAT branches:
+
+   | MAT branch | Distance | Calculation path |
+   |---|---|---|
+   | `location=1` | 88.884 mm | GTV → GTVnd1 |
+   | `location=0` | 211.226 mm | GTV → DCE_Center → GTVnd1 |
+
+9. Select the branch that matches the annotation definition for this study and
+   confirm. The chosen value is written into the clinical form and becomes part
+   of the model input.
+10. Select **Run Prediction**. Progress is reported in the status bar through
+    DCE preparation, feature encoding and MAT inference. Because the study
+    already contains `Case1_DCE_N4.nii.gz`, the N4 step is skipped and
+    inference starts immediately.
+11. The **Prediction Result** page shows the probability gauge, the risk band,
+    the modality summary and every input value used. Select **Export
+    Reproducibility Bundle…** if a record of that run is needed.
+
+To score both studies as a cohort, point **Batch Import** at the folder that
+contains `Case1` and `Case2`. Batch mode expects one workbook for the cohort, so
+either merge the two single-row workbooks into one sheet, or select
+`Case1/Clinicopathological.xlsx` after adding a `Case2` row to it. Each row is
+validated again before inference, and the confirmation step in Section 7.3 is
+requested per patient when the branch is ambiguous.
+
 ---
 
 ## 8. Manual Delineation in the Image Viewer
@@ -387,6 +477,13 @@ All output should be interpreted by a licensed clinician.
 The application does not replace radiologist review of DICOM series selection
 or of manually delineated contours. Automated ranking of DCE candidates is a
 selection aid only.
+
+The studies under `sample-data/` are de-identified research examples shared so
+that the software can be reproduced. They carry a study identifier, image
+volumes, contours and the clinical/pathological panel only. They contain no
+name, hospital number, medical record number, date of birth or acquisition date.
+They are provided for software verification and method reproduction, not for
+clinical use or for re-identification.
 
 ---
 
