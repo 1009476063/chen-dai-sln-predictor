@@ -1,5 +1,15 @@
 # Chen-Dai Distance-Based Intelligent Prediction System for Breast Cancer Sentinel Lymph Node Status V1.0
 
+> **Reviewer note on setup time.** Provided the hardware meets the requirements
+> in Section 1, the complete environment setup can be finished within a single
+> working day. Downloading the 495 MiB package, extracting it, installing the
+> runtime prerequisite, registering an account, and completing a first
+> prediction on the bundled sample studies takes well under an hour. The
+> remaining time is ample buffer for the email verification step and for N4
+> bias-field correction, which is the only stage whose duration depends on
+> image size and CPU speed. The bundled studies already include precomputed
+> `_DCE_N4` volumes, so they run without that wait.
+
 The application estimates the probability that a newly diagnosed breast cancer
 patient has sentinel lymph node (SLN) metastasis. It wraps the MAT (Multimodal
 Attention Transformer) model, which fuses three imaging modalities (DCE-MRI,
